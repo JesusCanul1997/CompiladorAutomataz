@@ -837,6 +837,7 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                 case "IF DELIZQ NUME OPREL NUME OPLO NUME OPREL IDE DELDER CIZQ ":
                 case "IF DELIZQ NUME OPREL NUME OPLO NUME OPREL NUME DELDER CIZQ ":
                 case "IDE OPRE IDE FIN":
+                case "ELSE CIZQ ":
 
                     break;
                 default:
@@ -874,13 +875,15 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
 
     public static void AnalizarTriplos(String texto) {
         int i = 0;
+        int NIF = 0;
+        int FIF = 0;
+        int NELSE = 0;
         String tokens = "";
         String[][] triplo = new String[50][4];
         triplo[i][0] = "\t";
         triplo[i][1] = "Do\t";
         triplo[i][2] = "Df\t";
         triplo[i][3] = "Op\t";
-
         i++;
 
         String[] lineas = texto.split("\n");
@@ -978,8 +981,9 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                 String ifDOS = "[\\#](if|IF|If|iF)[ ][\\(][ ][a-zA-Z0-9]+[ ][\\<||\\>||\\=||\\!]+[ ][a-zA-Z0-9]+[ ][&|\\|]+[ ][a-zA-Z0-9]+[ ][\\<||\\>||\\=||\\!]+[ ][a-zA-Z0-9]+[ ][)][ ][{]";
                 Pattern patIFDOS = Pattern.compile(ifDOS);        //cualquier identificador que empiece por letra
                 Matcher matIFDOS = patIFDOS.matcher(linea);
-                
+
                 if (matIF.matches()) {
+                    NIF++;
                     triplo[i][0] = i + "\t";
                     triplo[i][1] = "t1\t";
                     triplo[i][2] = partes[2] + "\t";
@@ -1001,23 +1005,163 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
 
                     triplo[i][0] = i + "\t";
                     triplo[i][1] = "TR1\t";
-                    triplo[i][2] = "FALSE \t";
-//                  triplo[i][3] = WTF;
+                    triplo[i][2] = "FALSE\t";
+                    triplo[i][3] = "";
                     i++;
                 }
                 if (matIFDOS.matches()) {
-                    System.out.println("if de dos comparativo");
+                    NIF++;
+                    //if de dos comparaciones
+                    //if (x >10 || 7 == 6 ){
+
+                    if ("||".equals(partes[5])) {
+                        // 1 t1 x = 
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "t1\t";
+                        triplo[i][2] = partes[2] + "\t";
+                        triplo[i][3] = "=\t";
+                        i++;
+                        //2 t1 10 >
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "t1\t";
+                        triplo[i][2] = partes[4] + "\t";
+                        triplo[i][3] = partes[3] + "\t";
+                        i++;
+                        //3 TR1 TRUE i+4
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "TRUE\t";
+                        triplo[i][3] = (i + 6) + "\t";
+                        i++;
+                        //4 TR1 FALSE i+1
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "FALSE\t";
+                        triplo[i][3] = (i + 1) + "\t";
+                        i++;
+                        //4 T1 7 =
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "T1\t";
+                        triplo[i][2] = partes[6] + "\t";
+                        triplo[i][3] = "=\t";
+                        i++;
+                        //4 T1 6 ==
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "T1\t";
+                        triplo[i][2] = partes[8] + "\t";
+                        triplo[i][3] = partes[7] + "\t";
+                        i++;
+                        //4 TR1 TRUE i+1
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "TRUE\t";
+                        triplo[i][3] = (i + 2) + "\t";
+                        i++;
+                        //4 TR1 FALSE i+1
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "FALSE\t";
+                        triplo[i][3] = "";//aun no se asigna
+                        i++;
+                    } else {
+                        //if (x >10 &&t 7 == 6 ){
+
+                        // 1 t1 x = 
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "t1\t";
+                        triplo[i][2] = partes[2] + "\t";
+                        triplo[i][3] = "=\t";
+                        i++;
+                        //2 t1 10 >
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "t1\t";
+                        triplo[i][2] = partes[4] + "\t";
+                        triplo[i][3] = partes[3] + "\t";
+                        i++;
+                        //3 TR1 TRUE i+4
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "TRUE\t";
+                        triplo[i][3] = (i + 2) + "\t";
+                        i++;
+                        //4 TR1 FALSE i+1
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "FALSE\t";
+                        triplo[i][3] = "";//aun no se asigna
+                        i++;
+                        //4 T1 7 =
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "T1\t";
+                        triplo[i][2] = partes[6] + "\t";
+                        triplo[i][3] = "=\t";
+                        i++;
+                        //4 T1 6 ==
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "T1\t";
+                        triplo[i][2] = partes[8] + "\t";
+                        triplo[i][3] = partes[7] + "\t";
+                        i++;
+                        //4 TR1 TRUE i+1
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "TRUE\t";
+                        triplo[i][3] = (i + 2) + "\t";
+                        i++;
+                        //4 TR1 FALSE i+1
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "TR1\t";
+                        triplo[i][2] = "FALSE\t";
+                        triplo[i][3] = "";//aun no se asigna
+                        i++;
+                    }
+                } else {
+
+                    Pattern patELSEA = Pattern.compile("[\\}][ ][\\#](else|Else|ELSE)[ ][\\{]");        //cualquier identificador que empiece por letra
+                    Matcher matELSEA = patELSEA.matcher(linea);
+                    FIF++;
+                    if (matELSEA.matches()) {
+                        NELSE++;
+                        if (NIF == 1) {
+                            for (String[] triplo1 : triplo) {
+                                if ("FALSE\t".equals(triplo1[2])) {
+                                    int a =i+1;
+                                    triplo1[3] =a+ "\t";
+                                }
+                            }
+                        }
+                        //para asignar un if con su else
+                        triplo[i][0] = i + "\t";
+                        triplo[i][1] = "JMP\t";
+                        triplo[i][2] = "->\t";
+                        triplo[i][3] = "";
+                        i++;
+                    }
                 }
+
             }
+
             tokens = "";
         }
-        
+
+        //asignacion de valor al else de un solo if 
+        for (String[] triplo1 : triplo) {
+            if ("FALSE\t".equals(triplo1[2])&& "".equals(triplo1[3])) {
+                triplo1[3] = i + "\t";
+            }
+        }
+        //asignacion de valor al jump de un solo if 
+        for (String[] triplo1 : triplo) {
+            if ("JMP\t".equals(triplo1[1])) {
+                triplo1[3] = i + "\t";
+            }
+        }
         //triplo para el final
         triplo[i][0] = i + "\t";
         triplo[i][1] = "FIN\t";
         triplo[i][2] = "FIN\t";
         triplo[i][3] = "FIN\t";
-        
+
         for (int iw = 0; iw < 50; iw++) {
             for (int iwn = 0; iwn < 4; iwn++) {
                 if (!(triplo[iw][0] == null)) {
@@ -1028,8 +1172,6 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
         }
 
     }
-
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea FCAD;
     private javax.swing.JButton btnAceptar;
