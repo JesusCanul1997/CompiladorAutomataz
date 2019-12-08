@@ -872,31 +872,59 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
             return tipoDato;
         }
     }
-
+    //la funcion recibe una variable la cual es la cadena todas las intrucciones 
     public static void AnalizarTriplos(String texto) {
+        //variable que lleva el conteo de cada triplo
         int i = 0;
+        //variable que cuenta el numero de if(condicion){
         int NIF = 0;
+        //variable que cuenta el numero de '}'
         int FIF = 0;
+        //variable que cuenta el numero de } else {
         int NELSE = 0;
+        //variable que crea una cadena para operaciones aritmeticas
         String tokens = "";
+        //estructura de datos donde se guaradran los triplos
         String[][] triplo = new String[50][4];
+        //1er triplo el cual es la cabecera de los titulos
+        //1 es donde se guarda el numero iterador de cada triplo
         triplo[i][0] = "\t";
+        //donde se guarda la direccion objeto
         triplo[i][1] = "Do\t";
+        //donde se guarda la direciion fuente
         triplo[i][2] = "Df\t";
+        //donde se guarda el operador
         triplo[i][3] = "Op\t";
+        //se incrementa el iterador a 1 para el sig triplo
         i++;
-
+        
+        //la cadena que recibe la funcion se divide cuando haya un salto de linea
+        //y se almacena en un arreglo para poder iterar en cada una de ellas
         String[] lineas = texto.split("\n");
-
+        
+        
+        //inicio del ciclo parab generar triplos
+        //La primera operacion que realizamos es recorrer el arreglo anterior
         for (String linea : lineas) {
-            //System.out.println(linea);
+            //En cada iteracion lo que hacemso es dividir cada parte cuando haya un espacio en blanco
+            //cada uno de estos valores que obtenemos son conocidos como lexemas
+            //de la misma forma estas se guardan en un arreglo
             String[] partes = linea.split(" ");
-
+            //Para saber que tipo de linea es ( opearion aritmetica, condicional nosotros creamos un ciclo que 
+            //llama a la funcion analiza(String) el cual nos retorna un token y nosotros
+            //concatenamos todos los tokens para tener una cadena la cual podemos compara
             for (String parte : partes) {
+                //Aqui es donde creamos la cadena de tokens
                 tokens += analiza(parte);
             }
-            //generacion de triplo para las asignaciones
+            //APARTIR DE AQUI SE EMPÍEZANA GENERAR LOS TOKENS
+            
+            //con la cadena que tokens que obtuvimos comprobamos si hay alguna asignacion de una sola variable
+            // Numero = 4 ; 
+            // Numero = a ;
             if ("IDE OPRE NUME FIN".equals(tokens) || "IDE OPRE IDE FIN".equals(tokens)) {
+                //si se cumple la condicion no sotros ya sabemos en que posicion debe ir cada lexema en el token
+                //por lo que ya podemos generar triplos para una asignacion cuando sea un numero o una variable
                 triplo[i][0] = i + "\t";
                 triplo[i][1] = "t1\t";
                 triplo[i][2] = partes[2] + "\t";
@@ -910,46 +938,74 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                 i++;
             } else {
 
-                //generacion de triplo para operaciones aritmeticas
+                /*generacion de triplo cuando la asignacion tiene 2 0 mas variables 
+                  primero creamos el patron para saber si una cadena es de asignacion de 2 o mas variables
+                Ejemplo: 
+                        numero = 3 + 5 ;
+                        numero = 3 + Var1 ;
+                        numero = 6 +8 - 34 / Var - 4 * 6 ;
+                */
                 Pattern patOPARITMETICAS = Pattern.compile("[[a-zA-Z]+[a-zA-Z0-9]+]+[ ][\\=][ ][[a-zA-Z0-9]+[ ][\\+||\\-||\\*||\\/][ ]]+\\;");        //cualquier identificador que empiece por letra
                 Matcher matOPARITMETICAS = patOPARITMETICAS.matcher(linea);
                 if (matOPARITMETICAS.matches()) {
-                    //x es la cantidad de lexemas 
-                    // x  =  x  +  3  ;
-                    // 1  2  3  4  5  6
+                    //primero medimos el numero de lexemas que tiene cada cadena
                     int x = partes.length;
-                    if (x == 6) {
+                    //x es la cantidad de lexemas, si x es igal a 6 entonces la operacion tiene solo 2 variables y un operador
+                    // Numero  =   5   +   3   ;
+                    //    1    2   3   4   5   6
+                    
+                    if (x == 6){
+                        //si es verdadero entonces se sabe que la cadena aritmetica tiene 3 triplos
+                        //donde se asigna el primer numero
+                        //     DO    DF  OP
+                        // i   t1    3   =
                         triplo[i][0] = i + "\t";
                         triplo[i][1] = "t1\t";
                         triplo[i][2] = partes[2] + "\t";
                         triplo[i][3] = partes[1] + "\t";
                         i++;
+                        //donse se realiza la operacion
+                        //     DO    DF  OP
+                        // i   t1    5   +
                         triplo[i][0] = i + "\t";
                         triplo[i][1] = "t1\t";
                         triplo[i][2] = partes[4] + "\t";
                         triplo[i][3] = partes[3] + "\t";
                         i++;
+                        //donse se asigna la temporal
+                        //     DO        DF    OP
+                        // i   Numero    t1    =
                         triplo[i][0] = i + "\t";
                         triplo[i][1] = partes[0] + "\t";
                         triplo[i][2] = "t1\t";
                         triplo[i][3] = partes[1] + "\t";
                         i++;
                     }
+                    //si la cantidad aritmetica es mayor de 6 y el modulo con 2 es 0 entonces la operacion involucra
+                    //mas de dos variables y mas de un operador
+                    // Numero  =   5   +   3   /  6  ;
+                    //    1    2   3   4   5   6  7  8
                     if (x > 6 && x % 2 == 0) {
-
+                        //en esta condicion  el numero de triplos es variable
+                        //el primer triplo asigna
+                        //    DO   DF   OP
+                        // i  t1   5    =
                         triplo[i][0] = i + "\t";
                         triplo[i][1] = "t1\t";
                         triplo[i][2] = partes[2] + "\t";
                         triplo[i][3] = partes[1] + "\t";
                         i++;
+                         //el 2do triplo realiza la primera operacion
+                        //    DO   DF   OP
+                        // i  t1   5    +
                         triplo[i][0] = i + "\t";
                         triplo[i][1] = "t1\t";
                         triplo[i][2] = partes[4] + "\t";
                         triplo[i][3] = partes[3] + "\t";
                         i++;
-
+                        //la siguiente variable analiza la cadena y establece el numero de triplos adiucionales tendra
                         int veces = (x - 6) / 2;
-
+                        //a partir del caso base sabemos que una aritmeticva sencilla tiene 6 lexemas
                         int cbase = 6;
 
                         //x es la cantidad de lexemas 
@@ -960,12 +1016,17 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                             triplo[i][1] = "t1\t";
                             triplo[i][2] = partes[cbase] + "\t";
                             triplo[i][3] = partes[cbase - 1] + "\t";
+                            //se le asigna 2a cbase ya que en cada triplo debe aumentar DFuente y un operador
                             cbase += 2;
                             //x toma los siguientes 
                             // x  =  x  +  3  -  4  *  x  ;
                             // 0  1  2  3  4  5  6  7  8  9
                             i++;
+                            
+                            //cuando la condicion ya no se cumpla saldra del bucle 
+                            //y realizara el ultimo triplo que es la asignacion
                         }
+                        //se realiza el tripo de asignacion
                         triplo[i][0] = i + "\t";
                         triplo[i][1] = partes[0] + "\t";
                         triplo[i][2] = "t1\t";
@@ -974,46 +1035,66 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                     }
 
                 }
+                //patron para una condicional con solo una operacion de comparacion
+                //Ejemplo:
+                // #if( num < num2 ) {
+                // #if( 5   >= 8 ) {
                 String ifUno = "[\\#](if|IF|If|iF)[ ][(][ ][a-zA-Z0-9]+[ ][\\<||\\>||=||!]+[ ][a-zA-Z0-9]+[ ][)][ ][{]";
                 Pattern patIF = Pattern.compile(ifUno);        //cualquier identificador que empiece por letra
                 Matcher matIF = patIF.matcher(linea);
-
+                //patron para una condicional con solo 2 operacion de comparacion y un operador condicional
+                //Ejemplo:
+                // #if( num < num2 || 7 != 9 ) {
+                // #if( 5   >= 8  && 78 < 90 ) {
                 String ifDOS = "[\\#](if|IF|If|iF)[ ][\\(][ ][a-zA-Z0-9]+[ ][\\<||\\>||\\=||\\!]+[ ][a-zA-Z0-9]+[ ][&|\\|]+[ ][a-zA-Z0-9]+[ ][\\<||\\>||\\=||\\!]+[ ][a-zA-Z0-9]+[ ][)][ ][{]";
                 Pattern patIFDOS = Pattern.compile(ifDOS);        //cualquier identificador que empiece por letra
                 Matcher matIFDOS = patIFDOS.matcher(linea);
-
+                //si se cumple que la condicinal de una sola comparacion entonces realiza la siguientes operaciones
                 if (matIF.matches()) {
+                    // primero le suma 1 al contador de numero de if 
                     NIF++;
+                    //despues genera los triplos
+                    //ejemplo : #if (  7  <  8  ) {
+                    //    DO   DF   OP
+                    // i  t1   7    =
                     triplo[i][0] = i + "\t";
                     triplo[i][1] = "t1\t";
                     triplo[i][2] = partes[2] + "\t";
                     triplo[i][3] = "=\t";
                     i++;
-
+                    //realiza la comparacion
+                    //    DO   DF   OP
+                    // i  t1   8    <
                     triplo[i][0] = i + "\t";
                     triplo[i][1] = "t1\t";
                     triplo[i][2] = partes[4] + "\t";
                     triplo[i][3] = partes[3] + "\t";
                     i++;
-
+                    //Si fue TRUE
+                    //    DO   DF    OP
+                    // i  TR1  TRUE  SIG
                     triplo[i][0] = i + "\t";
                     triplo[i][1] = "TR1\t";
                     int SIG = i + 2;
                     triplo[i][2] = "TRUE\t";
                     triplo[i][3] = SIG + "\t";
                     i++;
-
+                    //Si fue TRUE
+                    //    DO   DF    OP
+                    // i  TR1  TRUE  ?
+                    // luego se asigna
                     triplo[i][0] = i + "\t";
                     triplo[i][1] = "TR1\t";
                     triplo[i][2] = "FALSE\t";
                     triplo[i][3] = "";
                     i++;
                 }
+                // INICIA LOS IF DE DOS COMPRACAIONES Y UN OPERADOR LOGICO
                 if (matIFDOS.matches()) {
                     NIF++;
                     //if de dos comparaciones
                     //if (x >10 || 7 == 6 ){
-
+                    //cuando el operador logico es OR 
                     if ("||".equals(partes[5])) {
                         // 1 t1 x = 
                         triplo[i][0] = i + "\t";
@@ -1064,7 +1145,7 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                         triplo[i][3] = "";//aun no se asigna
                         i++;
                     } else {
-                        //if (x >10 &&t 7 == 6 ){
+                        //if (x >10 && 7 == 6 ){
 
                         // 1 t1 x = 
                         triplo[i][0] = i + "\t";
@@ -1115,22 +1196,33 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                         triplo[i][3] = "";//aun no se asigna
                         i++;
                     }
+                //termina de analizar los IF
                 } else {
-
+                //inica a analizar a los ELSE
+                    
+                    //Creacion del patron cuando la cadena sea else 
+                    // ejemplo: } #else {
                     Pattern patELSEA = Pattern.compile("[\\}][ ][\\#](else|Else|ELSE)[ ][\\{]");        //cualquier identificador que empiece por letra
                     Matcher matELSEA = patELSEA.matcher(linea);
-                    FIF++;
+                    
                     if (matELSEA.matches()) {
+                        //aumenta a 1 }
+                        FIF++;
+                        //aumenta a 1 el numero de else
                         NELSE++;
+                        // si el numero de if es 1 entones asigna a LA opcion False de la condicion
                         if (NIF == 1) {
                             for (String[] triplo1 : triplo) {
+                                //busca en que posicion la Opcion False no tiene valor de salto de un if
                                 if ("FALSE\t".equals(triplo1[2])) {
+                                    //asigna el valor de salto
                                     int a =i+1;
                                     triplo1[3] =a+ "\t";
                                 }
                             }
                         }
-                        //para asignar un if con su else
+                        
+                        //para asignar el JMP cuando se realicen todas las operaciones del if 
                         triplo[i][0] = i + "\t";
                         triplo[i][1] = "JMP\t";
                         triplo[i][2] = "->\t";
@@ -1138,11 +1230,10 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
                         i++;
                     }
                 }
-
             }
 
             tokens = "";
-        }
+        }//fin del ciclo de generacion de triplos
 
         //asignacion de valor al else de un solo if 
         for (String[] triplo1 : triplo) {
@@ -1161,7 +1252,7 @@ public class compilador extends javax.swing.JFrame implements ActionListener {
         triplo[i][1] = "FIN\t";
         triplo[i][2] = "FIN\t";
         triplo[i][3] = "FIN\t";
-
+        // se recorrre toda la estructura donde se alamcenaron los triplos para guardarlos en el archivo de texto
         for (int iw = 0; iw < 50; iw++) {
             for (int iwn = 0; iwn < 4; iwn++) {
                 if (!(triplo[iw][0] == null)) {
